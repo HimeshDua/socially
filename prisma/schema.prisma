@@ -1,0 +1,159 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------
+// User Model
+// -----------------------------
+// Each User has unique identifiers and optional profile fields.
+// Relations include posts, comments, likes, and notifications.
+// We separate notifications into ones received and ones created.
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  clerkId   String   @unique
+  name      String?
+  bio       String?
+  image     String?
+  location  String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts    Post[] // Posts authored by the user
+  comments Comment[] // Comments authored by the user
+  likes    Like[] // Likes given by the user
+
+  // Followers: Users who follow this user
+  followers Follows[] @relation("followers")
+  // Following: Users this user follows
+  following Follows[] @relation("following")
+
+  // Notifications where this user is the receiver
+  notificationsReceived Notification[] @relation("notificationsReceived")
+  // Notifications where this user is the creator (i.e., triggered the notification)
+  notificationsCreated  Notification[] @relation("notificationsCreated")
+}
+
+// -----------------------------
+// Post Model
+// -----------------------------
+// A Post can have content, an optional image, and relations to its author,
+// comments, likes, and any associated notifications.
+model Post {
+  id        String   @id @default(cuid())
+  authorId  String?
+  content   String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The post's author (if deleted, cascade deletes the post)
+  author        User?          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments      Comment[] // Comments on the post
+  likes         Like[] // Likes on the post
+  notifications Notification[] // Notifications related to the post (e.g., likes, comments)
+}
+
+// -----------------------------
+// Comment Model
+// -----------------------------
+// A Comment is tied to a Post and an author, with an optional text content.
+// It also can have associated notifications.
+model Comment {
+  id        String   @id @default(cuid())
+  authorId  String?
+  postId    String
+  content   String?
+  createdAt DateTime @default(now())
+
+  // Comment author (cascades on delete)
+  author        User?          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // The post this comment belongs to (cascades on delete)
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  notifications Notification[] // Notifications related to this comment
+
+  @@index([authorId, postId])
+}
+
+// -----------------------------
+// Like Model
+// -----------------------------
+// A Like is created by a user on a specific post.
+// The unique composite constraint prevents a user from liking the same post twice.
+model Like {
+  id        String   @id @default(cuid())
+  authorId  String?
+  postId    String
+  createdAt DateTime @default(now())
+
+  // The user who liked (cascade delete on user deletion)
+  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // The liked post (cascade delete on post deletion)
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([authorId, postId])
+  @@index([authorId, postId])
+}
+
+// -----------------------------
+// Follows Model
+// -----------------------------
+// This model represents a following relationship between two users.
+// A composite primary key ensures that a follower-following pair is unique.
+model Follows {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  // 'following' relation: the user who follows someone
+  follower  User @relation("following", fields: [followerId], references: [id])
+  // 'followers' relation: the user being followed
+  following User @relation("followers", fields: [followingId], references: [id])
+
+  @@id([followerId, followingId])
+  @@index([followerId, followingId])
+}
+
+// -----------------------------
+// Notification Model
+// -----------------------------
+// A Notification is created when a user triggers an action (like, comment, follow)
+// that another user should be notified about.
+// Each notification tracks the receiver (user) and the creator (who performed the action).
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String // The user receiving the notification
+  creatorId String // The user who triggered the notification
+  type      NotificationType
+  read      Boolean          @default(false)
+  postId    String? // Optional post related to the notification
+  commentId String? // Optional comment related to the notification
+  createdAt DateTime         @default(now())
+
+  // The user who receives the notification
+  user    User     @relation("notificationsReceived", fields: [userId], references: [id], onDelete: Cascade)
+  // The user who triggered the notification
+  creator User     @relation("notificationsCreated", fields: [creatorId], references: [id], onDelete: Cascade)
+  // Optional relations to a post or comment (if applicable)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, creatorId])
+}
+
+// Enum for different types of notifications.
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+}
