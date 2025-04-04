@@ -5,9 +5,6 @@ import {currentUser} from '@clerk/nextjs/server';
 import {syncUser} from '@/actions/user.action';
 
 async function Navbar() {
-  // await prisma.$connect();
-  // const users = await prisma.user.findMany();
-
   const user = await currentUser();
   if (user) await syncUser(); // POST
 
