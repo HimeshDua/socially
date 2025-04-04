@@ -11,12 +11,13 @@ export async function syncUser() {
     if (!user || !userId) {
       throw new Error('User not authenticated or userId not found');
     }
-    // await prisma.$connect();
+
     const existingUser = await prisma.user.findUnique({
       where: {
         clerkId: userId
       }
     });
+
     if (existingUser) return existingUser;
 
     const dbUser = await prisma.user.create({
@@ -30,6 +31,26 @@ export async function syncUser() {
       }
     });
     return dbUser;
+  } catch (error) {
+    console.error('Error syncing user:', error);
+    throw new Error('Failed to sync user data');
+  }
+}
+
+export async function getUserByClerkId(clerkId: string) {
+  try {
+    return prisma.user.findUnique({
+      where: {clerkId},
+      include: {
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+            posts: true
+          }
+        }
+      }
+    });
   } catch (error) {
     console.error('Error syncing user:', error);
     throw new Error('Failed to sync user data');
