@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import {ClerkProvider} from '@/components/ClerkProviderWrapper';
 import {ThemeWrapper} from '@/components/ThemeProvider';
 import Sidebar from '@/components/Sidebar';
+import {Toaster} from 'react-hot-toast';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -43,6 +44,7 @@ export default function RootLayout({
                       <Sidebar />
                     </div>
                     <div className="lg:col-span-9">{children}</div>
+                    <Toaster position="top-center" />
                   </div>
                 </div>
               </main>
