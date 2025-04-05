@@ -60,7 +60,7 @@ export async function getUserByClerkId(clerkId: string) {
 
 export async function getDbUserId() {
   const {userId: clerkId} = await auth();
-  if (!clerkId) throw new Error('Unauthorized to access Post');
+  if (!clerkId) throw new Error('Unauthorized');
 
   const user = await getUserByClerkId(clerkId);
   if (!user) throw new Error('User not found');
@@ -72,14 +72,19 @@ export async function getRandomUsers() {
   try {
     const userId = await getDbUserId();
 
-    const randomUser = await prisma.user.findMany({
+    if (!userId) return [];
+
+    // get 3 random users exclude ourselves & users that we already follow
+    const randomUsers = await prisma.user.findMany({
       where: {
         AND: [
           {NOT: {id: userId}},
           {
             NOT: {
               followers: {
-                some: {followingId: userId}
+                some: {
+                  followerId: userId
+                }
               }
             }
           }
@@ -98,10 +103,10 @@ export async function getRandomUsers() {
       },
       take: 3
     });
-    revalidatePath('/');
-    return randomUser;
+
+    return randomUsers;
   } catch (error) {
-    console.error('Error fetching random users:', error);
+    console.log('Error fetching random users', error);
     return [];
   }
 }
@@ -128,7 +133,6 @@ export async function toggleFollow(targetUserId: string) {
           }
         }
       });
-      revalidatePath('/');
     } else {
       await prisma.$transaction([
         prisma.follows.create({
@@ -145,9 +149,10 @@ export async function toggleFollow(targetUserId: string) {
           }
         })
       ]);
-      revalidatePath('/');
-      return {success: true};
     }
+    revalidatePath('/');
+
+    return {success: true};
   } catch (error) {
     console.log('Error in toggleFollow', error);
     return {success: false, error: 'Error toggling Follow'};
