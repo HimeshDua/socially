@@ -7,7 +7,17 @@ import FollowButton from './FollowButton';
 async function FollowSuggestions() {
   const users = await getRandomUsers();
 
-  if (users.length === 0) return null;
+  if (users.length === 0)
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Follow Suggestions</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center text-muted-foreground">
+          No suggestions available at the moment.
+        </CardContent>
+      </Card>
+    );
 
   return (
     <Card>
