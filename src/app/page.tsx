@@ -8,7 +8,7 @@ import {currentUser} from '@clerk/nextjs/server';
 export default async function Home() {
   const user = await currentUser();
   const posts = await getPosts();
-  const dbUserId = getDbUserId();
+  const dbUserId = await getDbUserId();
 
   console.log('posts', posts);
 
