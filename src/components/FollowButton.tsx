@@ -3,10 +3,9 @@
 import {useState} from 'react';
 import {Button} from './ui/button';
 import {Loader2Icon} from 'lucide-react';
-import toast, {Toaster} from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import {toggleFollow} from '@/actions/user.action';
 
-<Toaster position="top-center" />;
 function FollowButton({userId}: {userId: string}) {
   const [isLoading, setIsLoading] = useState(false);
 
