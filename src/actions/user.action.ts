@@ -79,7 +79,7 @@ export async function getRandomUsers() {
           {
             NOT: {
               followers: {
-                none: {followerId: userId}
+                some: {followingId: userId}
               }
             }
           }
