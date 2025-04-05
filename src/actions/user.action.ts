@@ -98,6 +98,7 @@ export async function getRandomUsers() {
       },
       take: 3
     });
+    revalidatePath('/');
     return randomUser;
   } catch (error) {
     console.error('Error fetching random users:', error);
