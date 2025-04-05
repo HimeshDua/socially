@@ -127,6 +127,7 @@ export async function toggleFollow(targetUserId: string) {
           }
         }
       });
+      revalidatePath('/');
     } else {
       await prisma.$transaction([
         prisma.follows.create({
