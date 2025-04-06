@@ -7,22 +7,22 @@ import {
 import {notFound} from 'next/navigation';
 import ProfilePageClient from './ProfilePageClient';
 
-interface PageProps {
-  params: {
-    username: string;
-  };
-}
-
-export async function generateMetadata({params}: PageProps) {
-  const user = await getProfileByUsername(params.username);
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{username: string}>;
+}) {
+  const {username} = await params;
+  const user = await getProfileByUsername(username);
   if (!user) return;
+
   return {
     title: `${user.name} @${user.username}`,
     description: user.bio || 'No bio available',
     openGraph: {
       title: `${user.name} (@${user.username})`,
       description: user.bio || 'No bio available',
-      url: `https://socially-hems.vercel.com/profile/${params.username}`,
+      url: `https://socially-hems.vercel.com/profile/${username}`,
       images: [
         {
           url:
@@ -35,8 +35,13 @@ export async function generateMetadata({params}: PageProps) {
   };
 }
 
-async function ProfilePageServer({params}: PageProps) {
-  const user = await getProfileByUsername(params.username);
+async function ProfilePageServer({
+  params
+}: {
+  params: Promise<{username: string}>;
+}) {
+  const {username} = await params;
+  const user = await getProfileByUsername(username);
 
   if (!user) notFound();
 
@@ -55,4 +60,5 @@ async function ProfilePageServer({params}: PageProps) {
     />
   );
 }
+
 export default ProfilePageServer;
