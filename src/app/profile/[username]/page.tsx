@@ -1,4 +1,3 @@
-// import { title } from 'process';
 import {
   getProfileByUsername,
   getUserLikedPosts,
@@ -8,7 +7,13 @@ import {
 import {notFound} from 'next/navigation';
 import ProfilePageClient from './ProfilePageClient';
 
-export async function generateMetadata({params}: {params: {username: string}}) {
+interface PageProps {
+  params: {
+    username: string;
+  };
+}
+
+export async function generateMetadata({params}: PageProps) {
   const user = await getProfileByUsername(params.username);
   if (!user) return;
   return {
@@ -30,13 +35,7 @@ export async function generateMetadata({params}: {params: {username: string}}) {
   };
 }
 
-interface PageProps {
-  params: {
-    username: string;
-  };
-}
-
-async function ProfilePageServer({params}: {params: PageProps['params']}) {
+async function ProfilePageServer({params}: PageProps) {
   const user = await getProfileByUsername(params.username);
 
   if (!user) notFound();
