@@ -12,6 +12,7 @@ export async function getProfileByUsername(username: string) {
       select: {
         id: true,
         name: true,
+        email: true,
         username: true,
         bio: true,
         image: true,
@@ -46,6 +47,7 @@ export async function getUserPosts(userId: string) {
           select: {
             id: true,
             name: true,
+            email: true,
             username: true,
             image: true
           }
@@ -104,6 +106,7 @@ export async function getUserLikedPosts(userId: string) {
           select: {
             id: true,
             name: true,
+            email: true,
             username: true,
             image: true
           }
